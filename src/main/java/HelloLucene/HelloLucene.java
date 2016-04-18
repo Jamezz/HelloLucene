@@ -1,4 +1,3 @@
-package HelloLucene;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -26,28 +25,43 @@ public class HelloLucene {
 	public static void main(String[] args) throws IOException, ParseException {
 		// 0. Specify the analyzer for tokenizing text.
 		//    The same analyzer should be used for indexing and searching
-		StandardAnalyzer analyzer = new StandardAnalyzer(Version.LUCENE_40);
+		StandardAnalyzer analyzer = new StandardAnalyzer();
 
 		// 1. create the index
 		Directory index = new RAMDirectory();
 
-		IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_40, analyzer);
+		IndexWriterConfig config = new IndexWriterConfig(analyzer);
 
 		IndexWriter w = new IndexWriter(index, config);
 		addDoc(w, "Lucene in Action", "193398817");
 		addDoc(w, "Lucene for Dummies", "55320055Z");
 		addDoc(w, "Managing Gigabytes", "55063554A");
 		addDoc(w, "The Art of Computer Science", "9900333X");
+      addDoc(w, "Art for Dummies", "28374748Q");
+      addDoc(w, "The Science of Art", "238234897Z");
+      addDoc(w, "The Science of Computer Science", "1223827X");
+      addDoc(w, "Lucene the Milk vs Lucene the Code", "14875757Z");
 		w.close();
 
 		// 2. query
-		String querystr = args.length > 0 ? args[0] : "lucene";
+      String querystr = "";
+      if (args.length == 0)
+      {
+         querystr = "lucene";
+      }
+      for (int i = 0; i < args.length ; i++)
+      {
+         querystr += args[i] + " ";
+      }
+      
+		querystr = querystr.trim();
+      System.out.println("Query: [" + querystr +"]");
 
 		// the "title" arg specifies the default field to use
 		// when no field is explicitly specified in the query.
 		Query q = null;
 		try {
-			q = new QueryParser(Version.LUCENE_40, "title", analyzer).parse(querystr);
+			q = new QueryParser("title", analyzer).parse(querystr);
 		} catch (org.apache.lucene.queryparser.classic.ParseException e) {
 			e.printStackTrace();
 		}
@@ -56,7 +70,7 @@ public class HelloLucene {
 		int hitsPerPage = 10;
 		IndexReader reader = DirectoryReader.open(index);
 		IndexSearcher searcher = new IndexSearcher(reader);
-		TopScoreDocCollector collector = TopScoreDocCollector.create(hitsPerPage, true);
+		TopScoreDocCollector collector = TopScoreDocCollector.create(hitsPerPage);
 		searcher.search(q, collector);
 		ScoreDoc[] hits = collector.topDocs().scoreDocs;
 
